@@ -1,0 +1,45 @@
+name: build and test
+
+on:
+  workflow_dispatch: null
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
+
+      - run: go version
+
+      - name: Build binary
+        run: make
+      
+      - name: Test
+        run: make test
+
+  old-go-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.18"
+
+      - run: go version
+
+      - name: Build binary
+        run: make
+      
+      - name: Test
+        run: make test
