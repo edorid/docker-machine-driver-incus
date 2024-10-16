@@ -14,8 +14,6 @@ builds:
       - darwin
       - windows
 archives:
-  - files:
-    - none*
   - id: incus-docker-machine-archives
     format: zip
     name_template: >-
