@@ -62,7 +62,7 @@ package_update: true
 packages:
   - openssh-server
   - systemd-timesyncd
-	- curl
+  - curl
 `
 )
 
