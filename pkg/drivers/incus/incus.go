@@ -63,6 +63,7 @@ packages:
   - openssh-server
   - systemd-timesyncd
   - curl
+  - iptables
 `
 )
 
