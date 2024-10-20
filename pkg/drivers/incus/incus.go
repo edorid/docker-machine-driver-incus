@@ -18,25 +18,25 @@ import (
 
 type Driver struct {
 	*drivers.BaseDriver
-	URL           string
-	TLSClientCert string
-	TLSClientKey  string
-	CPU           int
-	Memory        int
-	DiskSize      int
-	Project       string
-	Profile       string
-	Network       string
-	Storage       string
-	Image         string
-	CloudInit     string
-	incus         incus.InstanceServer
-	state         state.State
-	sshPublicKey  string
-	imgConfig     *api.InstanceSource
-	netConfig     map[string]string
-	diskConfig    map[string]string
-	rsrcConfig    map[string]string
+	URL               string
+	TLSClientCert     string
+	TLSClientKey      string
+	CPU               int
+	Memory            int
+	DiskSize          int
+	Project           string
+	Profile           string
+	Network           string
+	Storage           string
+	Image             string
+	CloudInitUserData string
+	incus             incus.InstanceServer
+	state             state.State
+	sshPublicKey      string
+	imgConfig         *api.InstanceSource
+	netConfig         map[string]string
+	diskConfig        map[string]string
+	rsrcConfig        map[string]string
 }
 
 const (
@@ -50,7 +50,7 @@ const (
 	defaultStorage       = "local"
 	defaultActiveTimeout = 200
 	imageServer          = "https://images.linuxcontainers.org"
-	cloudInit            = `#cloud-config
+	cloudInitVendorData  = `#cloud-config
 allow_public_ssh_keys: true
 ssh_authorized_keys:
   - %s
@@ -165,9 +165,10 @@ func (d *Driver) Create() error {
 		return err
 	}
 
-	cloudInit := fmt.Sprintf(cloudInit, d.sshPublicKey)
+	cloudInitVendorData := fmt.Sprintf(cloudInitVendorData, d.sshPublicKey)
 	config := d.rsrcConfig
-	config["cloud-init.user-data"] = cloudInit
+	config["cloud-init.vendor-data"] = cloudInitVendorData
+	config["cloud-init.user-data"] = d.CloudInitUserData
 
 	devices := map[string]map[string]string{
 		"root": d.diskConfig,
@@ -337,6 +338,11 @@ func (d *Driver) PreCreateCheck() error {
 }
 
 func (d *Driver) Remove() error {
+	err := d.Kill()
+	if err != nil {
+		return err
+	}
+
 	client, err := d.getClient()
 	if err != nil {
 		return err
@@ -389,7 +395,7 @@ func (d *Driver) SetConfigFromFlags(flags drivers.DriverOptions) error {
 	d.Network = flags.String("incus-network-name")
 	d.Storage = flags.String("incus-storage-name")
 	d.Image = flags.String("incus-image-name")
-	d.CloudInit = flags.String("incus-cloudinit-userdata")
+	d.CloudInitUserData = flags.String("incus-cloudinit-userdata")
 
 	d.SetSwarmConfigFromFlags(flags)
 
