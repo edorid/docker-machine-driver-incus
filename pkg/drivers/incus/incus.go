@@ -168,7 +168,9 @@ func (d *Driver) Create() error {
 	cloudInitVendorData := fmt.Sprintf(cloudInitVendorData, d.sshPublicKey)
 	config := d.rsrcConfig
 	config["cloud-init.vendor-data"] = cloudInitVendorData
-	config["cloud-init.user-data"] = d.CloudInitUserData
+	if d.CloudInitUserData != "" {
+		config["cloud-init.user-data"] = d.CloudInitUserData
+	}
 
 	devices := map[string]map[string]string{
 		"root": d.diskConfig,
@@ -334,6 +336,13 @@ func (d *Driver) PreCreateCheck() error {
 		return err
 	}
 
+	if d.CloudInitUserData != "" {
+		if cloudConfig, err := os.ReadFile(d.CloudInitUserData); err == nil {
+			d.CloudInitUserData = string(cloudConfig)
+		} else {
+			d.CloudInitUserData = ""
+		}
+	}
 	return nil
 }
 
