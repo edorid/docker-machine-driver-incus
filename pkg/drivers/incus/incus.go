@@ -169,7 +169,9 @@ func (d *Driver) Create() error {
 	config := d.rsrcConfig
 	config["cloud-init.vendor-data"] = cloudInitVendorData
 	if d.CloudInitUserData != "" {
-		config["cloud-init.user-data"] = d.CloudInitUserData
+		if cloudConfig, err := os.ReadFile(d.CloudInitUserData); err == nil {
+			config["cloud-init.user-data"] = string(cloudConfig)
+		}
 	}
 
 	devices := map[string]map[string]string{
@@ -336,13 +338,6 @@ func (d *Driver) PreCreateCheck() error {
 		return err
 	}
 
-	if d.CloudInitUserData != "" {
-		if cloudConfig, err := os.ReadFile(d.CloudInitUserData); err == nil {
-			d.CloudInitUserData = string(cloudConfig)
-		} else {
-			d.CloudInitUserData = ""
-		}
-	}
 	return nil
 }
 
