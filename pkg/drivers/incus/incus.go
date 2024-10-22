@@ -221,7 +221,7 @@ func (d *Driver) Create() error {
 		for _, net := range state.Network {
 			// only take the first IPv4 address
 			for _, addr := range net.Addresses {
-				if addr.Family == "inet" {
+				if addr.Family == "inet" && addr.Scope != "local" {
 					d.IPAddress = addr.Address
 					log.Infof("Instance IP address: %s", d.IPAddress)
 					return nil
@@ -344,10 +344,7 @@ func (d *Driver) PreCreateCheck() error {
 }
 
 func (d *Driver) Remove() error {
-	err := d.Kill()
-	if err != nil {
-		return err
-	}
+	d.Kill()
 
 	client, err := d.getClient()
 	if err != nil {
