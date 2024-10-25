@@ -61,7 +61,6 @@ disable_root: false
 package_update: true
 packages:
   - openssh-server
-  - systemd-timesyncd
   - curl
   - iptables
 `
