@@ -30,6 +30,7 @@ type Driver struct {
 	Storage           string
 	Image             string
 	CloudInitUserData string
+	SSHPort           int
 	incus             incus.InstanceServer
 	state             state.State
 	sshPublicKey      string
@@ -49,6 +50,8 @@ const (
 	defaultNetwork       = "incusbr0"
 	defaultStorage       = "local"
 	defaultActiveTimeout = 200
+	defaultSSHUser       = "root"
+	defaultSSHPort       = 22
 	imageServer          = "https://images.linuxcontainers.org"
 	cloudInitVendorData  = `#cloud-config
 allow_public_ssh_keys: true
@@ -149,6 +152,18 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "Incus cloud-init.user-data",
 			Value:  "",
 		},
+		mcnflag.IntFlag{
+			EnvVar: "INCUS_SSH_PORT",
+			Name:   "incus-ssh-port",
+			Usage:  "Incus Instance SSH Port",
+			Value:  defaultSSHPort,
+		},
+		mcnflag.StringFlag{
+			EnvVar: "INCUS_SSH_USER",
+			Name:   "incus-ssh-user",
+			Usage:  "Specifies the user as which docker-machine should log in to the Incus instance to install Docker.",
+			Value:  defaultSSHUser,
+		},
 	}
 }
 
@@ -243,6 +258,22 @@ func (d *Driver) DriverName() string {
 
 func (d *Driver) GetSSHHostname() (string, error) {
 	return d.GetIP()
+}
+
+func (d *Driver) GetSSHPort() (int, error) {
+	if d.SSHPort == 0 {
+		d.SSHPort = defaultSSHPort
+	}
+
+	return d.SSHPort, nil
+}
+
+func (d *Driver) GetSSHUsername() string {
+	if d.SSHUser == "" {
+		d.SSHUser = defaultSSHUser
+	}
+
+	return d.SSHUser
 }
 
 func (d *Driver) GetURL() (string, error) {
@@ -397,6 +428,8 @@ func (d *Driver) SetConfigFromFlags(flags drivers.DriverOptions) error {
 	d.Network = flags.String("incus-network-name")
 	d.Storage = flags.String("incus-storage-name")
 	d.Image = flags.String("incus-image-name")
+	d.SSHPort = flags.Int("incus-ssh-port")
+	d.SSHUser = flags.String("incus-ssh-user")
 	d.CloudInitUserData = flags.String("incus-cloudinit-userdata")
 
 	d.SetSwarmConfigFromFlags(flags)
