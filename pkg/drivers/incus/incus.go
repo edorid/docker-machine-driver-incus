@@ -597,6 +597,7 @@ func (d *Driver) getNetwork() (map[string]string, error) {
 		"name":    "eth0",
 		"type":    "nic",
 		"network": d.Network,
+		"mtu":     "1400",
 	}, nil
 }
 
