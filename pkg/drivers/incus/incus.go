@@ -38,6 +38,7 @@ type Driver struct {
 	netConfig         map[string]string
 	diskConfig        map[string]string
 	rsrcConfig        map[string]string
+	isOVN             bool
 }
 
 const (
@@ -66,6 +67,21 @@ packages:
   - openssh-server
   - curl
   - iptables
+`
+	cloudInitNetworkConfigOVN = `#cloud-config
+network:
+  version: 1
+  config:
+  - type: physical
+    name: enp5s0
+    mtu: 1442
+    subnets:
+    - type: dhcp
+  - type: physical
+    name: eth0
+    mtu: 1442
+    subnets:
+    - type: dhcp
 `
 )
 
@@ -188,6 +204,11 @@ func (d *Driver) Create() error {
 		if cloudConfig, err := os.ReadFile(d.CloudInitUserData); err == nil {
 			config["cloud-init.user-data"] = string(cloudConfig)
 		}
+	}
+
+	if d.isOVN {
+		// this handle mtu for ovn network needs to be 1442 in guest VM
+		config["cloud-init.network-config"] = cloudInitNetworkConfigOVN
 	}
 
 	devices := map[string]map[string]string{
@@ -593,6 +614,7 @@ func (d *Driver) getNetwork() (map[string]string, error) {
 	}
 
 	// ovn network
+	d.isOVN = true
 	return map[string]string{
 		"name":    "eth0",
 		"type":    "nic",
