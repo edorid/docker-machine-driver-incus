@@ -67,6 +67,7 @@ packages:
   - openssh-server
   - curl
   - iptables
+  - open-iscsi
 `
 	cloudInitNetworkConfigOVN = `#cloud-config
 network:
